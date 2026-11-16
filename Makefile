@@ -7,7 +7,7 @@ endif
 TARGET		:=	spacesim
 BUILD		:=	build
 SOURCES		:=	source
-INCLUDES	:=	include
+INCLUDES	:=	include source
 
 TITLE		:=	SpaceSim PS3
 APPID		:=	SPACESIM0
@@ -34,10 +34,13 @@ export LD	:=	$(CC)
 export OFILES	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
 export INCLUDE	+=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			-I$(PSL1GHT)/ppu/include \
+			-I$(PS3DEV)/ppu/include \
 			-I$(PS3DEV)/portlibs/ppu/include \
 			-I$(CURDIR)/$(BUILD)
 
-export LIBPATHS	+=	-L$(PSL1GHT)/ppu/lib -L$(PS3DEV)/portlibs/ppu/lib
+export LIBPATHS	+=	-L$(PSL1GHT)/ppu/lib \
+			-L$(PS3DEV)/ppu/lib \
+			-L$(PS3DEV)/portlibs/ppu/lib
 
 .PHONY: $(BUILD) clean all pkg
 
