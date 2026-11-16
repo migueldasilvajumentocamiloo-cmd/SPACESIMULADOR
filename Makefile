@@ -4,8 +4,6 @@ ifeq ($(strip $(PSL1GHT)),)
 $(error "Please set PSL1GHT in your environment. export PSL1GHT=<path/to/PSL1GHT>")
 endif
 
-include $(PSL1GHT)/ppu_rules
-
 TARGET		:=	spacesim
 BUILD		:=	build
 SOURCES		:=	source
@@ -15,11 +13,13 @@ TITLE		:=	SpaceSim PS3
 APPID		:=	SPACESIM0
 CONTENTID	:=	UP0001-SPACESIM0_00-0000000000000000
 
-CFLAGS		:=	-g -O2 -Wall $(MACHDEP) $(INCLUDE)
-CXXFLAGS	:=	$(CFLAGS)
-LDFLAGS		:=	$(MACHDEP) -Wl,-Map,$(notdir $@).map
-
 LIBS		:=	-ltiny3d -lrsx -lgcm_sys -lsysutil -lsysfs -lio -lm
+
+include $(PSL1GHT)/ppu_rules
+
+CFLAGS		+=	-g -O2 -Wall $(MACHDEP) $(INCLUDE)
+CXXFLAGS	+=	$(CFLAGS)
+LDFLAGS		+=	$(MACHDEP) -Wl,-Map,$(notdir $@).map
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
@@ -32,11 +32,12 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 
 export LD	:=	$(CC)
 export OFILES	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+export INCLUDE	+=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			-I$(PSL1GHT)/ppu/include \
+			-I$(PS3DEV)/portlibs/ppu/include \
 			-I$(CURDIR)/$(BUILD)
 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+export LIBPATHS	+=	-L$(PSL1GHT)/ppu/lib -L$(PS3DEV)/portlibs/ppu/lib
 
 .PHONY: $(BUILD) clean all pkg
 
