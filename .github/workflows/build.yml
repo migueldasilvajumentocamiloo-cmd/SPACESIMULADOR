@@ -13,7 +13,6 @@ jobs:
 
     env:
       PS3DEV: /usr/local/ps3dev
-      PSL1GHT: /usr/local/ps3dev/psl1ght
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -33,6 +32,9 @@ jobs:
           echo "/usr/local/ps3dev/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/ppu/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/spu/bin" >> $GITHUB_PATH
+          PSL1GHT_DIR=$(dirname $(find /usr/local/ps3dev -name "Makefile.base" | head -n 1))
+          echo "PSL1GHT encontrado em: $PSL1GHT_DIR"
+          echo "PSL1GHT=$PSL1GHT_DIR" >> $GITHUB_ENV
 
       - name: Compilar Jogo PS3
         run: make -j$(nproc)
