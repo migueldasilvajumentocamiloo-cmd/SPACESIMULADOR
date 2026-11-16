@@ -25,11 +25,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make git python3 libelf-dev libssl-dev zlib1g-dev
 
-      - name: Baixar SDK PS3DEV Oficial
+      - name: Baixar SDK PS3DEV Pronto (15s)
         run: |
           sudo mkdir -p /usr/local/ps3dev
-          gh release download -R ps3dev/ps3dev -p "*linux*" -D /tmp
-          sudo tar -xf /tmp/*linux* -C /usr/local/ps3dev --strip-components=1
+          gh release download -R bucanero/ps3toolchain -p "*ubuntu*" -D /tmp
+          sudo tar -xzf /tmp/*ubuntu* -C /usr/local/ps3dev --strip-components=1
           echo "/usr/local/ps3dev/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/ppu/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/spu/bin" >> $GITHUB_PATH
@@ -39,7 +39,7 @@ jobs:
           git clone https://github.com /tmp/tiny3d
           make -C /tmp/tiny3d/library install
 
-      - name: Compilar Projeto
+      - name: Compilar Jogo PS3
         run: make -j$(nproc)
 
       - name: Preparar Artefatos
