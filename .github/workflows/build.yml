@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ps3dev/psl1ght:latest
+      image: ps3dev/ps3dev:latest
 
     steps:
       - name: Checkout do Código
@@ -19,6 +19,7 @@ jobs:
 
       - name: Verificar Ambiente
         run: |
+          echo "PS3DEV: $PS3DEV"
           echo "PSL1GHT: $PSL1GHT"
           ppu-gcc --version
 
