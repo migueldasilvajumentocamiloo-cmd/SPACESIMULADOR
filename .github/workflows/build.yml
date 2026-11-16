@@ -42,6 +42,13 @@ jobs:
           make -C /tmp/psl1ght install-ctrl
           make -C /tmp/psl1ght
           make -C /tmp/psl1ght install
+          
+          # Compatibilidade de headers PSL1GHT v1 -> v2
+          INC_DIR=$(dirname $(find /usr/local/ps3dev -name "ppu-types.h" | head -n 1))
+          mkdir -p "$INC_DIR/psl1ght"
+          ln -sf "$INC_DIR/ppu-types.h" "$INC_DIR/psl1ght/types.h"
+          for f in "$INC_DIR"/*.h; do ln -sf "$f" "$INC_DIR/psl1ght/$(basename "$f")"; done
+          
           gh repo clone wargio/tiny3D /tmp/tiny3d
           make -C /tmp/tiny3d
           mkdir -p /usr/local/ps3dev/portlibs/ppu/lib /usr/local/ps3dev/portlibs/ppu/include
