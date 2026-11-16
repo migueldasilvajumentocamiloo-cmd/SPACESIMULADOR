@@ -39,6 +39,7 @@ jobs:
         run: |
           export PATH="$PATH:/usr/local/ps3dev/bin:/usr/local/ps3dev/ppu/bin:/usr/local/ps3dev/spu/bin"
           gh repo clone ps3dev/PSL1GHT /tmp/psl1ght
+          make -C /tmp/psl1ght install-ctrl
           make -C /tmp/psl1ght
           make -C /tmp/psl1ght install
           gh repo clone wargio/tiny3D /tmp/tiny3d
