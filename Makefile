@@ -46,9 +46,9 @@ all: pkg
 pkg: $(BUILD)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $(OUTPUT).elf
 	@mkdir -p $(BUILD)/pkg/USRDIR
-	@cp $$(find $(PSL1GHT) -name "ICON0.PNG" | head -n 1) $(BUILD)/pkg/ICON0.PNG
+	@python3 -c "import zlib,struct; w,h=320,176; raw=b''.join(b'\x00'+b'\x0a\x18\x45'*w for _ in range(h)); chk=lambda t,d:struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff); open('$(BUILD)/pkg/ICON0.PNG','wb').write(b'\x89PNG\r\n\x1a\n'+chk(b'IHDR',struct.pack('>IIBBBBB',w,h,8,2,0,0,0))+chk(b'IDAT',zlib.compress(raw))+chk(b'IEND',b''))"
 	@make_self_npdrm $(OUTPUT).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN $(CONTENTID)
-	@sfo.py --title "$(TITLE)" --appid "$(APPID)" -f $$(find $(PSL1GHT) -name "sfo.xml" | head -n 1) $(BUILD)/pkg/PARAM.SFO
+	@sfo.py --title "$(TITLE)" --appid "$(APPID)" -f /tmp/psl1ght/tools/generic/sfo.xml $(BUILD)/pkg/PARAM.SFO
 	@pkg.py --contentid $(CONTENTID) $(BUILD)/pkg/ $(OUTPUT).pkg
 
 $(BUILD):
