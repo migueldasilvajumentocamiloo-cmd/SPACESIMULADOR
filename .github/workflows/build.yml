@@ -23,7 +23,7 @@ jobs:
       - name: Instalar Dependências
         run: |
           sudo apt-get update
-          sudo apt-get install -y make git python3 python3-pil libelf-dev libssl-dev zlib1g-dev libgmp-dev libmpfr-dev libmpc-dev
+          sudo apt-get install -y make git python3 python3-pil 2to3 libelf-dev libssl-dev zlib1g-dev libgmp-dev libmpfr-dev libmpc-dev
 
       - name: Baixar Compilador PS3DEV
         run: |
@@ -42,6 +42,9 @@ jobs:
           make -C /tmp/psl1ght install-ctrl
           make -C /tmp/psl1ght
           make -C /tmp/psl1ght install
+          
+          # Converter scripts Python 2 do PSL1GHT para Python 3
+          2to3 -w /usr/local/ps3dev/bin/*.py || true
           
           # Compatibilidade de headers PSL1GHT v1 -> v2
           INC_DIR=$(dirname $(find /usr/local/ps3dev -name "ppu-types.h" | head -n 1))
