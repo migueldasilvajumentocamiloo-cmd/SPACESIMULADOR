@@ -1,21 +1,28 @@
 /**
- * main.c — Loop Principal do SpaceSim PS3
+ * main.c — Loop Principal do SpaceSim PS3 (Sem Tela Preta)
  */
 
 #include "game.h"
 #include <sysutil/sysutil.h>
+#include <sysmodule/sysmodule.h>
 
-// Variáveis globais
 ModoJogo g_modoJogo = MODO_VAB;
 Foguete g_foguete;
 EstadoVAB g_vab;
+static int g_rodando = 1;
 
-// Funções externas do VAB
 void InicializarVAB(void);
 void AtualizarVAB(void);
 void DesenharPeca(float cx, float cy, TipoPeca tipo, float s);
 
-// Funções de dados do foguete
+// Callback obrigatório do sistema PS3 (evita travamento e tela preta)
+static void sysutil_callback(u64 status, u64 param, void *usrdata) {
+    (void)param; (void)usrdata;
+    if (status == SYSUTIL_EXIT_GAME) {
+        g_rodando = 0;
+    }
+}
+
 void InicializarFoguete(Foguete* f) {
     memset(f, 0, sizeof(Foguete));
 }
@@ -39,7 +46,6 @@ void RecalcularEstatisticas(Foguete* f) {
     }
 }
 
-// ==================== MODO DE VOO INICIAL ====================
 static float rocketX = 424.0f;
 static float rocketY = 380.0f;
 static float velY = 0.0f;
@@ -74,7 +80,6 @@ static void AtualizarVoo(void) {
     if (padinfo.status) {
         ioPadGetData(0, &paddata);
 
-        // Botão X liga os motores se tiver combustível
         if (paddata.BTN_CROSS && combustivelAtual > 0.0f && g_foguete.empuxoTotal > 0.0f) {
             motorLigado = 1;
             float aceleracao = (g_foguete.empuxoTotal * 1000.0f) / (g_foguete.massaTotal + 1.0f);
@@ -83,11 +88,9 @@ static void AtualizarVoo(void) {
             if (combustivelAtual < 0.0f) combustivelAtual = 0.0f;
         }
 
-        // Controle lateral
         if (paddata.BTN_LEFT)  velX -= 0.08f;
         if (paddata.BTN_RIGHT) velX += 0.08f;
 
-        // SELECT volta para a oficina VAB
         if (paddata.BTN_SELECT) {
             vooIniciado = 0;
             g_modoJogo = MODO_VAB;
@@ -95,27 +98,23 @@ static void AtualizarVoo(void) {
         }
     }
 
-    // Gravidade da Terra
     velY += 0.04f;
     rocketX += velX;
     rocketY += velY;
 
-    // Chão (plataforma)
     if (rocketY > 360.0f) {
         rocketY = 360.0f;
         velY = 0.0f;
         velX *= 0.85f;
     }
 
-    // Desenho do cenário de voo
     tiny3d_Clear(0x0A1535FF, TINY3D_CLEAR_ALL);
     tiny3d_Project2D();
+    tiny3d_SetMatrixModelView(NULL);
 
-    // Chão e plataforma
     DrawRectVoo(0, 440, 848, 72, 0x228833FF);
     DrawRectVoo(350, 432, 148, 8, 0x777777FF);
 
-    // Desenha exatamente o foguete montado no VAB
     float escala = 0.7f;
     float passo = CELL_SIZE * escala;
     for (int l = 0; l < GRID_ROWS; l++) {
@@ -126,7 +125,6 @@ static void AtualizarVoo(void) {
                 float py = rocketY + (l - GRID_ROWS / 2.0f) * passo;
                 DesenharPeca(px, py, t, escala);
 
-                // Chama nos motores ligados
                 if (motorLigado && (t == PECA_MOTOR_LEVE || t == PECA_MOTOR_PESADO)) {
                     DrawRectVoo(px - 4, py + 10, 8, 18, 0xFF8800FF);
                 }
@@ -137,15 +135,19 @@ static void AtualizarVoo(void) {
     tiny3d_Flip();
 }
 
-// ==================== INÍCIO DO JOGO ====================
 int main(int argc, char **argv) {
     (void)argc; (void)argv;
 
+    sysModuleLoad(SYSMODULE_IO);
+    sysModuleLoad(SYSMODULE_GCM_SYS);
+
     tiny3d_Init(1024 * 1024);
     ioPadInit(7);
+    sysutilRegisterCallback(0, sysutil_callback, NULL);
+
     InicializarVAB();
 
-    while (1) {
+    while (g_rodando) {
         sysUtilCheckCallback();
         if (g_modoJogo == MODO_VAB) {
             AtualizarVAB();
@@ -154,5 +156,7 @@ int main(int argc, char **argv) {
         }
     }
 
+    ioPadEnd();
+    sysutilUnregisterCallback(0);
     return 0;
 }
