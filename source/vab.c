@@ -63,6 +63,7 @@ void AtualizarVAB(void) {
     ProcessarEntradaVAB();
     tiny3d_Clear(0x080C22FF, TINY3D_CLEAR_ALL);
     tiny3d_Project2D();
+    tiny3d_SetMatrixModelView(NULL);
 
     DesenharGrade();
     DesenharMenuLateral();
