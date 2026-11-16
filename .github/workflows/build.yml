@@ -44,9 +44,8 @@ jobs:
           make -C /tmp/psl1ght install
           gh repo clone wargio/tiny3D /tmp/tiny3d
           make -C /tmp/tiny3d
-          ls -la /tmp/tiny3d/
-          cp /tmp/tiny3d/src/*.a /usr/local/ps3dev/ppu/lib/ 2>/dev/null || cp /tmp/tiny3d/*.a /usr/local/ps3dev/ppu/lib/
-          cp /tmp/tiny3d/include/tiny3d.h /usr/local/ps3dev/ppu/include/ 2>/dev/null || cp /tmp/tiny3d/tiny3d.h /usr/local/ps3dev/ppu/include/
+          cp /tmp/tiny3d/lib/*.a /usr/local/ps3dev/ppu/lib/
+          cp /tmp/tiny3d/include/*.h /usr/local/ps3dev/ppu/include/
 
       - name: Compilar Jogo PS3
         run: make -j$(nproc)
