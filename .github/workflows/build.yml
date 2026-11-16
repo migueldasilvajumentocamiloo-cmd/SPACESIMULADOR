@@ -25,7 +25,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make git python3 libelf-dev libssl-dev zlib1g-dev
 
-      - name: Baixar SDK PS3DEV Pronto (15s)
+      - name: Baixar SDK PS3DEV Pronto
         run: |
           sudo mkdir -p /usr/local/ps3dev
           gh release download -R bucanero/ps3toolchain -p "*ubuntu*" -D /tmp
@@ -36,7 +36,7 @@ jobs:
 
       - name: Instalar Tiny3D
         run: |
-          git clone https://github.com /tmp/tiny3d
+          gh repo clone wargio/tiny3D /tmp/tiny3d
           make -C /tmp/tiny3d/library install
 
       - name: Compilar Jogo PS3
