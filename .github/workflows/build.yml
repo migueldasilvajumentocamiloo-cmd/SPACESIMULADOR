@@ -22,13 +22,13 @@ jobs:
       - name: Instalar Dependências do Sistema
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget tar xz-utils make git python3 libelf-dev libssl-dev zlib1g-dev
+          sudo apt-get install -y wget tar gzip make git python3 libelf-dev libssl-dev zlib1g-dev
 
       - name: Baixar Toolchain PS3DEV Pré-compilado
         run: |
           sudo mkdir -p /usr/local/ps3dev
-          wget -q https://github.com -O /tmp/ps3dev.tar.xz
-          sudo tar -xf /tmp/ps3dev.tar.xz -C /usr/local/ps3dev --strip-components=1
+          wget -q https://github.com -O /tmp/ps3dev.tar.gz
+          sudo tar -xzf /tmp/ps3dev.tar.gz -C /usr/local/ps3dev --strip-components=1
           echo "/usr/local/ps3dev/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/ppu/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/spu/bin" >> $GITHUB_PATH
