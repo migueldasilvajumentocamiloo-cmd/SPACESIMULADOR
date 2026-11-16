@@ -23,14 +23,14 @@ jobs:
       - name: Instalar Dependências
         run: |
           sudo apt-get update
-          sudo apt-get install -y make git python3 libelf-dev libssl-dev zlib1g-dev
+          sudo apt-get install -y make git python3 libelf-dev libssl-dev zlib1g-dev libgmp-dev libmpfr-dev libmpc-dev
 
       - name: Baixar Compilador PS3DEV
         run: |
           sudo mkdir -p /usr/local/ps3dev
           sudo chown -R $USER:$USER /usr/local/ps3dev
-          gh release download -R bucanero/ps3toolchain -p "*ubuntu*" -D /tmp
-          tar -xzf /tmp/*ubuntu* -C /usr/local/ps3dev --strip-components=1
+          gh release download -R bucanero/ps3toolchain -p "*ubuntu*.tar.gz" -D /tmp
+          tar -xzf /tmp/*ubuntu*.tar.gz -C /usr/local/ps3dev --strip-components=1
           echo "/usr/local/ps3dev/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/ppu/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/spu/bin" >> $GITHUB_PATH
@@ -38,26 +38,31 @@ jobs:
       - name: Instalar PSL1GHT e Tiny3D
         run: |
           export PATH="$PATH:/usr/local/ps3dev/bin:/usr/local/ps3dev/ppu/bin:/usr/local/ps3dev/spu/bin"
-          gh repo clone ps3dev/PSL1GHT /tmp/psl1ght
+          
+          git clone --depth 1 https://github.com /tmp/psl1ght
           make -C /tmp/psl1ght install-ctrl
           make -C /tmp/psl1ght
           make -C /tmp/psl1ght install
-          gh repo clone wargio/tiny3D /tmp/tiny3d
+          
+          git clone --depth 1 https://github.com /tmp/tiny3d
           make -C /tmp/tiny3d
           find /tmp/tiny3d -name "*.a" -exec cp {} /usr/local/ps3dev/ppu/lib/ \;
-          find /tmp/tiny3d -name "tiny3d.h" -exec cp {} /usr/local/ps3dev/ppu/include/ \;
+          find /tmp/tiny3d -name "*.h" -exec cp {} /usr/local/ps3dev/ppu/include/ \;
 
-      - name: Compilar Jogo PS3
-        run: make -j$(nproc)
+      - name: Compilar Jogo e Gerar PKG
+        run: |
+          make -j$(nproc)
+          make pkg
 
-      - name: Preparar Artefato — Só o .pkg
+      - name: Preparar Artefato (.pkg)
         run: |
           mkdir -p artifacts
-          cp *.pkg artifacts/ 2>/dev/null || true
+          cp *.pkg artifacts/
 
-      - name: Baixar Jogo
+      - name: Upload do Artefato
         uses: actions/upload-artifact@v4
         with:
           name: SpaceSim-PS3
-          path: artifacts/
+          path: artifacts/*.pkg
           retention-days: 30
+          if-no-files-found: error
