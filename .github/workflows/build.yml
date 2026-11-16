@@ -23,14 +23,14 @@ jobs:
       - name: Instalar Dependências
         run: |
           sudo apt-get update
-          sudo apt-get install -y make git python3 libelf-dev libssl-dev zlib1g-dev libgmp-dev libmpfr-dev libmpc-dev
+          sudo apt-get install -y make git python3 python3-pil libelf-dev libssl-dev zlib1g-dev libgmp-dev libmpfr-dev libmpc-dev
 
       - name: Baixar Compilador PS3DEV
         run: |
           sudo mkdir -p /usr/local/ps3dev
           sudo chown -R $USER:$USER /usr/local/ps3dev
-          gh release download -R bucanero/ps3toolchain -p "*ubuntu*.tar.gz" -D /tmp
-          tar -xzf /tmp/*ubuntu*.tar.gz -C /usr/local/ps3dev --strip-components=1
+          gh release download -R bucanero/ps3toolchain -p "*ubuntu*" -D /tmp
+          tar -xzf /tmp/*ubuntu* -C /usr/local/ps3dev --strip-components=1
           echo "/usr/local/ps3dev/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/ppu/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/spu/bin" >> $GITHUB_PATH
@@ -46,20 +46,25 @@ jobs:
           
           git clone --depth 1 https://github.com /tmp/tiny3d
           make -C /tmp/tiny3d
-          find /tmp/tiny3d -name "*.a" -exec cp {} /usr/local/ps3dev/ppu/lib/ \;
-          find /tmp/tiny3d -name "*.h" -exec cp {} /usr/local/ps3dev/ppu/include/ \;
+          mkdir -p /usr/local/ps3dev/portlibs/ppu/lib /usr/local/ps3dev/portlibs/ppu/include
+          find /tmp/tiny3d -name "*.a" -exec cp {} /usr/local/ps3dev/portlibs/ppu/lib/ \;
+          find /tmp/tiny3d -name "*.h" -exec cp {} /usr/local/ps3dev/portlibs/ppu/include/ \;
 
-      - name: Compilar Jogo e Gerar PKG
+      - name: Criar ICON0.PNG se não existir
         run: |
-          make -j$(nproc)
-          make pkg
+          if [ ! -f ICON0.PNG ]; then
+            python3 -c "from PIL import Image; Image.new('RGBA', (320, 176), (20, 30, 60, 255)).save('ICON0.PNG')"
+          fi
 
-      - name: Preparar Artefato (.pkg)
+      - name: Compilar Jogo PS3
+        run: make -j$(nproc)
+
+      - name: Preparar Artefato — Só o .pkg
         run: |
           mkdir -p artifacts
           cp *.pkg artifacts/
 
-      - name: Upload do Artefato
+      - name: Baixar Jogo
         uses: actions/upload-artifact@v4
         with:
           name: SpaceSim-PS3
