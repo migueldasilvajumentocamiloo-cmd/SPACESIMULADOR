@@ -38,13 +38,11 @@ jobs:
       - name: Instalar PSL1GHT e Tiny3D
         run: |
           export PATH="$PATH:/usr/local/ps3dev/bin:/usr/local/ps3dev/ppu/bin:/usr/local/ps3dev/spu/bin"
-          
-          git clone --depth 1 https://github.com /tmp/psl1ght
+          gh repo clone ps3dev/PSL1GHT /tmp/psl1ght
           make -C /tmp/psl1ght install-ctrl
           make -C /tmp/psl1ght
           make -C /tmp/psl1ght install
-          
-          git clone --depth 1 https://github.com /tmp/tiny3d
+          gh repo clone wargio/tiny3D /tmp/tiny3d
           make -C /tmp/tiny3d
           mkdir -p /usr/local/ps3dev/portlibs/ppu/lib /usr/local/ps3dev/portlibs/ppu/include
           find /tmp/tiny3d -name "*.a" -exec cp {} /usr/local/ps3dev/portlibs/ppu/lib/ \;
