@@ -46,17 +46,6 @@ all: pkg
 pkg: $(BUILD)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $(OUTPUT).elf
 	@mkdir -p $(BUILD)/pkg/USRDIR
-	@python3 -c "import zlib, struct
-w,h=320,176
-raw = b''
-for y in range(h):
-    for x in range(w):
-        if y==0 or y==h-1 or x==0 or x==w-1:
-            raw += b'\x00\xFF\xFF\xFF'
-        else:
-            raw += b'\x00\x00\x10\x40'
-chk=lambda t,d:struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
-open('$(BUILD)/pkg/ICON0.PNG','wb').write(b'\x89PNG\r\n\x1a\n'+chk(b'IHDR',struct.pack('>IIBBBBB',w,h,8,2,0,0,0))+chk(b'IDAT',zlib.compress(raw,9))+chk(b'IEND',b''))"
 	@make_self $(OUTPUT).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN
 	@python3 $(PSL1GHT)/tools/generic/sfo.py --title "$(TITLE)" --appid "$(APPID)" -f $(PSL1GHT)/tools/generic/sfo.xml $(BUILD)/pkg/PARAM.SFO
 	@python3 $(PS3DEV)/bin/pkg.py --contentid $(CONTENTID) $(BUILD)/pkg/ $(OUTPUT).pkg
