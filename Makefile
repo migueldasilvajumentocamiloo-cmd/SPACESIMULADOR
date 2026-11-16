@@ -46,9 +46,9 @@ all: pkg
 pkg: $(BUILD)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $(OUTPUT).elf
 	@mkdir -p $(BUILD)/pkg/USRDIR
-	@cp $(PSL1GHT)/bin/ICON0.PNG $(BUILD)/pkg/ICON0.PNG
-	@fself.py $(OUTPUT).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN || make_self_npdrm $(OUTPUT).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN $(CONTENTID)
-	@sfo.py --title "$(TITLE)" --appid "$(APPID)" -f $(PSL1GHT)/bin/sfo.xml $(BUILD)/pkg/PARAM.SFO
+	@cp $$(find $(PSL1GHT) -name "ICON0.PNG" | head -n 1) $(BUILD)/pkg/ICON0.PNG
+	@make_self_npdrm $(OUTPUT).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN $(CONTENTID)
+	@sfo.py --title "$(TITLE)" --appid "$(APPID)" -f $$(find $(PSL1GHT) -name "sfo.xml" | head -n 1) $(BUILD)/pkg/PARAM.SFO
 	@pkg.py --contentid $(CONTENTID) $(BUILD)/pkg/ $(OUTPUT).pkg
 
 $(BUILD):
