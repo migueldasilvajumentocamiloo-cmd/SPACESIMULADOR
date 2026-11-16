@@ -43,20 +43,20 @@ jobs:
           make -C /tmp/psl1ght
           make -C /tmp/psl1ght install
           gh repo clone wargio/tiny3D /tmp/tiny3d
-          make -C /tmp/tiny3d install || make -C $(dirname $(find /tmp/tiny3d -name "tiny3d.h" | head -n 1))/.. install
+          make -C /tmp/tiny3d
+          make -C /tmp/tiny3d install
 
       - name: Compilar Jogo PS3
         run: make -j$(nproc)
 
-      - name: Preparar Artefatos
+      - name: Preparar Artefato — Só o .pkg
         run: |
           mkdir -p artifacts
-          cp *.pkg *.self *.bin artifacts/ 2>/dev/null || true
-          ls -la artifacts/
+          cp *.pkg artifacts/ 2>/dev/null || true
 
-      - name: Enviar Arquivos Compilados
+      - name: Baixar Jogo
         uses: actions/upload-artifact@v4
         with:
-          name: spacesim-ps3-build
+          name: SpaceSim-PS3
           path: artifacts/
           retention-days: 30
