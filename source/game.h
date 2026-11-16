@@ -5,6 +5,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <psl1ght/types.h>
 #include <tiny3d.h>
 #include <io/pad.h>
 #include <math.h>
@@ -41,9 +42,9 @@ typedef enum {
 
 typedef struct {
     const char* nome;
-    float massa;           // kg
-    float combustivel;     // litros
-    float empuxo;          // kN no vácuo
+    float massa;
+    float combustivel;
+    float empuxo;
     u32 cor;
 } DadosPeca;
 
@@ -75,7 +76,7 @@ typedef struct {
     int menuAberto;
 } EstadoVAB;
 
-// ==================== DADOS DAS PEÇAS (Formato RGBA Tiny3D) ====================
+// ==================== DADOS DAS PEÇAS ====================
 static const DadosPeca tabelaPecas[PECA_MAX] = {
     [PECA_VAZIO] =           {"",                 0.0f,   0.0f,   0.0f, 0x00000000},
     [PECA_CAPSULA] =         {"Capsula",        120.0f,   0.0f,   0.0f, 0xFFFFFFFF},
