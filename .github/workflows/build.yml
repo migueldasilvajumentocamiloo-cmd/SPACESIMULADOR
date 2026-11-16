@@ -11,17 +11,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: wargio/ps3sdk-docker:latest
+      image: psl1ght/psl1ght:latest
 
     steps:
       - name: Checkout do Código
         uses: actions/checkout@v4
 
-      - name: Verificar Ambiente
+      - name: Instalar Tiny3D
         run: |
-          echo "PS3DEV: $PS3DEV"
-          echo "PSL1GHT: $PSL1GHT"
-          ppu-gcc --version
+          git clone https://github.com /tmp/tiny3d
+          make -C /tmp/tiny3d/library install
 
       - name: Compilar Projeto
         run: make -j$(nproc)
