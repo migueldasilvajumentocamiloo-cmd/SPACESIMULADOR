@@ -4,6 +4,10 @@
 
 #include "game.h"
 
+extern EstadoVAB g_vab;
+extern Foguete g_foguete;
+extern const DadosPeca tabelaPecas[PECA_MAX];
+
 #define COR_GRID_LINHA  0x334466FF
 #define COR_GRID_FUNDO  0x121833FF
 #define COR_CURSOR      0xFFFF00FF
@@ -169,13 +173,11 @@ void DesenharEstatisticas(void) {
     SetCor(0x161D3AFF);
     DrawRect(rx - 10, 10, 140, SCREEN_H - 20);
 
-    // Massa
     SetCor(COR_BARRA_FUNDO); DrawRect(rx, 38, 120, 16);
     float m = g_foguete.massaTotal / 3000.0f; if (m > 1.0f) m = 1.0f;
     SetCor(COR_BARRA_VALOR); DrawRect(rx + 1, 39, 118 * m, 14);
     DesenharNumero(rx, 20, g_foguete.massaTotal, 4);
 
-    // TWR
     float twr = g_foguete.massaTotal > 0.1f ? (g_foguete.empuxoTotal * 1000.0f) / (g_foguete.massaTotal * 9.81f) : 0.0f;
     SetCor(COR_BARRA_FUNDO); DrawRect(rx, 90, 120, 16);
     float t = twr / 2.5f; if (t > 1.0f) t = 1.0f;
@@ -183,7 +185,6 @@ void DesenharEstatisticas(void) {
     DrawRect(rx + 1, 91, 118 * t, 14);
     DesenharNumero(rx, 72, twr * 10.0f, 2);
 
-    // Combustível
     SetCor(COR_BARRA_FUNDO); DrawRect(rx, 142, 120, 16);
     float c = g_foguete.combustivelTotal / 600.0f; if (c > 1.0f) c = 1.0f;
     SetCor(0x2288FFFF); DrawRect(rx + 1, 143, 118 * c, 14);
