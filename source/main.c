@@ -1,190 +1,157 @@
 /**
- * SpaceSim PS3 — Versão de Teste Funcional
- * PSL1GHT + Tiny3D + DualShock 3
+ * main.c — Loop Principal do SpaceSim PS3
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
+#include "game.h"
 #include <sysutil/sysutil.h>
-#include <io/pad.h>
-#include <tiny3d.h>
 
-// Cores no formato RGBA (Tiny3D)
-#define COLOR_WHITE   0xFFFFFFFF
-#define COLOR_GRAY    0x888888FF
-#define COLOR_DARK    0x444444FF
-#define COLOR_ORANGE  0xFF8800FF
-#define COLOR_YELLOW  0xFFFF00FF
-#define COLOR_BLUE    0x2288FFFF
-#define COLOR_GREEN   0x22AA44FF
+// Variáveis globais
+ModoJogo g_modoJogo = MODO_VAB;
+Foguete g_foguete;
+EstadoVAB g_vab;
 
-typedef struct {
-    float x, y;
-    float scale;
-    int engineOn;
-    float flameHeight;
-} Rocket;
+// Funções externas do VAB
+void InicializarVAB(void);
+void AtualizarVAB(void);
+void DesenharPeca(float cx, float cy, TipoPeca tipo, float s);
 
-Rocket rocket = {
-    .x = 424.0f, // Centro horizontal na escala virtual 848x512 do Tiny3D
-    .y = 320.0f,
-    .scale = 1.0f,
-    .engineOn = 0,
-    .flameHeight = 0.0f
-};
-
-// ==================== PRIMITIVAS TINY3D ====================
-
-void drawRect(float x, float y, float w, float h, u32 color) {
-    tiny3d_SetPolygon(TINY3D_QUADS);
-    tiny3d_VertexPos(x, y, 0);
-    tiny3d_VertexColor(color);
-    tiny3d_VertexPos(x + w, y, 0);
-    tiny3d_VertexColor(color);
-    tiny3d_VertexPos(x + w, y + h, 0);
-    tiny3d_VertexColor(color);
-    tiny3d_VertexPos(x, y + h, 0);
-    tiny3d_VertexColor(color);
-    tiny3d_End();
+// Funções de dados do foguete
+void InicializarFoguete(Foguete* f) {
+    memset(f, 0, sizeof(Foguete));
 }
 
-void drawTri(float x1, float y1, float x2, float y2, float x3, float y3, u32 color) {
-    tiny3d_SetPolygon(TINY3D_TRIANGLES);
-    tiny3d_VertexPos(x1, y1, 0);
-    tiny3d_VertexColor(color);
-    tiny3d_VertexPos(x2, y2, 0);
-    tiny3d_VertexColor(color);
-    tiny3d_VertexPos(x3, y3, 0);
-    tiny3d_VertexColor(color);
-    tiny3d_End();
-}
+void RecalcularEstatisticas(Foguete* f) {
+    f->massaTotal = 0.0f;
+    f->empuxoTotal = 0.0f;
+    f->combustivelTotal = 0.0f;
+    f->pecasCount = 0;
 
-// ==================== PEÇAS DO FOGUETE ====================
-
-void drawCapsule(float cx, float cy, float s) {
-    float w = 24.0f * s;
-    float h = 28.0f * s;
-    drawTri(cx, cy - h * 0.7f, cx - w * 0.5f, cy, cx + w * 0.5f, cy, COLOR_WHITE);
-    drawRect(cx - w * 0.5f, cy, w, h * 0.3f, COLOR_GRAY);
-}
-
-void drawTank(float cx, float cy, float s, float height) {
-    float w = 24.0f * s;
-    float h = height * s;
-    drawRect(cx - w * 0.5f, cy, w, h, COLOR_WHITE);
-    drawRect(cx - w * 0.5f, cy, w, 2.0f, COLOR_DARK);
-    drawRect(cx - w * 0.5f, cy + h - 2.0f, w, 2.0f, COLOR_DARK);
-}
-
-void drawEngine(float cx, float cy, float s) {
-    float w = 18.0f * s;
-    float h = 14.0f * s;
-    drawRect(cx - w * 0.4f, cy, w * 0.8f, h * 0.4f, COLOR_DARK);
-    drawTri(cx, cy + h * 0.2f, cx - w * 0.6f, cy + h, cx + w * 0.6f, cy + h, COLOR_GRAY);
-}
-
-void drawFlame(float cx, float cy, float s, float height) {
-    if (height <= 1.0f) return;
-    float w = 14.0f * s;
-    float h = height * s;
-    drawTri(cx - w * 0.6f, cy, cx + w * 0.6f, cy, cx, cy + h, COLOR_ORANGE);
-    drawTri(cx - w * 0.3f, cy, cx + w * 0.3f, cy, cx, cy + h * 0.6f, COLOR_YELLOW);
-}
-
-void drawRocket(Rocket *r) {
-    float cx = r->x;
-    float cy = r->y;
-    float s = r->scale;
-
-    drawCapsule(cx, cy - 85.0f * s, s);
-    drawTank(cx, cy - 76.0f * s, s, 40.0f);
-    drawTank(cx, cy - 36.0f * s, s, 45.0f);
-    drawEngine(cx, cy + 9.0f * s, s);
-
-    if (r->engineOn) {
-        drawFlame(cx, cy + 23.0f * s, s, r->flameHeight);
-    }
-}
-
-// ==================== CONTROLE DUALSHOCK 3 ====================
-
-void readPadInput() {
-    padInfo padinfo;
-    padData paddata;
-    static int prevCross = 0;
-
-    ioPadGetInfo(&padinfo);
-    if (padinfo.status[0]) {
-        ioPadGetData(0, &paddata);
-
-        // Botão X liga/desliga motor
-        if (paddata.BTN_CROSS && !prevCross) {
-            rocket.engineOn = !rocket.engineOn;
-            if (rocket.engineOn && rocket.flameHeight < 20.0f) {
-                rocket.flameHeight = 35.0f;
+    for (int l = 0; l < GRID_ROWS; l++) {
+        for (int c = 0; c < GRID_COLS; c++) {
+            TipoPeca t = f->grid[l][c].tipo;
+            if (t > PECA_VAZIO && t < PECA_MAX) {
+                f->massaTotal += tabelaPecas[t].massa;
+                f->empuxoTotal += tabelaPecas[t].empuxo;
+                f->combustivelTotal += tabelaPecas[t].combustivel;
+                f->pecasCount++;
             }
         }
-        prevCross = paddata.BTN_CROSS;
-
-        // L2 e R2 ajustam potência
-        if (paddata.BTN_R2) {
-            rocket.flameHeight += 1.5f;
-            if (rocket.flameHeight > 70.0f) rocket.flameHeight = 70.0f;
-        }
-        if (paddata.BTN_L2) {
-            rocket.flameHeight -= 1.5f;
-            if (rocket.flameHeight < 10.0f) rocket.flameHeight = 10.0f;
-        }
-
-        // Analógico esquerdo ou direcional move o foguete
-        float ax = ((float)paddata.ANA_L_H - 128.0f) / 128.0f;
-        float ay = ((float)paddata.ANA_L_V - 128.0f) / 128.0f;
-
-        if (fabsf(ax) > 0.15f) rocket.x += ax * 3.0f;
-        if (fabsf(ay) > 0.15f) rocket.y += ay * 3.0f;
-
-        if (paddata.BTN_LEFT)  rocket.x -= 2.5f;
-        if (paddata.BTN_RIGHT) rocket.x += 2.5f;
-        if (paddata.BTN_UP)    rocket.y -= 2.5f;
-        if (paddata.BTN_DOWN)  rocket.y += 2.5f;
     }
 }
 
-// ==================== LOOP PRINCIPAL ====================
+// ==================== MODO DE VOO INICIAL ====================
+static float rocketX = 424.0f;
+static float rocketY = 380.0f;
+static float velY = 0.0f;
+static float velX = 0.0f;
+static float combustivelAtual = 0.0f;
+static int vooIniciado = 0;
 
+static void DrawRectVoo(float x, float y, float w, float h, u32 cor) {
+    tiny3d_SetPolygon(TINY3D_QUADS);
+    tiny3d_VertexPos(x, y, 0);         tiny3d_VertexColor(cor);
+    tiny3d_VertexPos(x + w, y, 0);     tiny3d_VertexColor(cor);
+    tiny3d_VertexPos(x + w, y + h, 0); tiny3d_VertexColor(cor);
+    tiny3d_VertexPos(x, y + h, 0);     tiny3d_VertexColor(cor);
+    tiny3d_End();
+}
+
+static void AtualizarVoo(void) {
+    if (!vooIniciado) {
+        rocketX = 424.0f;
+        rocketY = 360.0f;
+        velX = 0.0f;
+        velY = 0.0f;
+        combustivelAtual = g_foguete.combustivelTotal;
+        vooIniciado = 1;
+    }
+
+    padInfo padinfo;
+    padData paddata;
+    ioPadGetInfo(&padinfo);
+
+    int motorLigado = 0;
+    if (padinfo.status) {
+        ioPadGetData(0, &paddata);
+
+        // Botão X liga os motores se tiver combustível
+        if (paddata.BTN_CROSS && combustivelAtual > 0.0f && g_foguete.empuxoTotal > 0.0f) {
+            motorLigado = 1;
+            float aceleracao = (g_foguete.empuxoTotal * 1000.0f) / (g_foguete.massaTotal + 1.0f);
+            velY -= aceleracao * 0.008f;
+            combustivelAtual -= 0.25f;
+            if (combustivelAtual < 0.0f) combustivelAtual = 0.0f;
+        }
+
+        // Controle lateral
+        if (paddata.BTN_LEFT)  velX -= 0.08f;
+        if (paddata.BTN_RIGHT) velX += 0.08f;
+
+        // SELECT volta para a oficina VAB
+        if (paddata.BTN_SELECT) {
+            vooIniciado = 0;
+            g_modoJogo = MODO_VAB;
+            return;
+        }
+    }
+
+    // Gravidade da Terra
+    velY += 0.04f;
+    rocketX += velX;
+    rocketY += velY;
+
+    // Chão (plataforma)
+    if (rocketY > 360.0f) {
+        rocketY = 360.0f;
+        velY = 0.0f;
+        velX *= 0.85f;
+    }
+
+    // Desenho do cenário de voo
+    tiny3d_Clear(0x0A1535FF, TINY3D_CLEAR_ALL);
+    tiny3d_Project2D();
+
+    // Chão e plataforma
+    DrawRectVoo(0, 440, 848, 72, 0x228833FF);
+    DrawRectVoo(350, 432, 148, 8, 0x777777FF);
+
+    // Desenha exatamente o foguete montado no VAB
+    float escala = 0.7f;
+    float passo = CELL_SIZE * escala;
+    for (int l = 0; l < GRID_ROWS; l++) {
+        for (int c = 0; c < GRID_COLS; c++) {
+            TipoPeca t = g_foguete.grid[l][c].tipo;
+            if (t != PECA_VAZIO) {
+                float px = rocketX + (c - GRID_COLS / 2.0f) * passo;
+                float py = rocketY + (l - GRID_ROWS / 2.0f) * passo;
+                DesenharPeca(px, py, t, escala);
+
+                // Chama nos motores ligados
+                if (motorLigado && (t == PECA_MOTOR_LEVE || t == PECA_MOTOR_PESADO)) {
+                    DrawRectVoo(px - 4, py + 10, 8, 18, 0xFF8800FF);
+                }
+            }
+        }
+    }
+
+    tiny3d_Flip();
+}
+
+// ==================== INÍCIO DO JOGO ====================
 int main(int argc, char **argv) {
     (void)argc; (void)argv;
 
     tiny3d_Init(1024 * 1024);
     ioPadInit(7);
+    InicializarVAB();
 
     while (1) {
         sysUtilCheckCallback();
-        readPadInput();
-
-        // Limpa a tela com fundo azul escuro espacial
-        tiny3d_Clear(0x050818FF, TINY3D_CLEAR_ALL);
-        tiny3d_Project2D();
-
-        // Estrelas fixas
-        srand(42);
-        for (int i = 0; i < 80; i++) {
-            float sx = (float)(rand() % 848);
-            float sy = (float)(rand() % 512);
-            drawRect(sx, sy, 2.0f, 2.0f, COLOR_WHITE);
+        if (g_modoJogo == MODO_VAB) {
+            AtualizarVAB();
+        } else {
+            AtualizarVoo();
         }
-
-        // Chão / Superfície da Terra na base da tela
-        drawRect(0.0f, 430.0f, 848.0f, 82.0f, COLOR_GREEN);
-        drawRect(360.0f, 422.0f, 128.0f, 8.0f, COLOR_GRAY); // Plataforma de lançamento
-
-        // Desenha o foguete
-        drawRocket(&rocket);
-
-        tiny3d_Flip();
     }
 
     return 0;
