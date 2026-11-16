@@ -126,10 +126,24 @@ void DesenharCursor(void) {
     DrawRect(x + CELL_SIZE - 2, y, 2, CELL_SIZE);
 }
 
+static unsigned char PegarSegmentos(int d) {
+    switch (d) {
+        case 0: return 0x3F;
+        case 1: return 0x06;
+        case 2: return 0x5B;
+        case 3: return 0x4F;
+        case 4: return 0x66;
+        case 5: return 0x6D;
+        case 6: return 0x7D;
+        case 7: return 0x07;
+        case 8: return 0x7F;
+        case 9: return 0x6F;
+        default: return 0x00;
+    }
+}
+
 static void DesenharDigito(float x, float y, int d, float t) {
-    if (d < 0 || d > 9) return;
-    const unsigned char seg[10] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};
-    unsigned char s = seg[d];
+    unsigned char s = PegarSegmentos(d);
     SetCor(COR_TEXTO);
     if (s & 1)  DrawRect(x+2, y, t-4, 2);
     if (s & 2)  DrawRect(x+t-2, y+2, 2, t*0.45f);
