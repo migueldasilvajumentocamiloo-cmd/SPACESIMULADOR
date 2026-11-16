@@ -44,7 +44,12 @@ export LIBPATHS	+=	-L$(PSL1GHT)/ppu/lib -L$(PS3DEV)/portlibs/ppu/lib
 all: pkg
 
 pkg: $(BUILD)
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $(OUTPUT).pkg
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $(OUTPUT).elf
+	@mkdir -p $(BUILD)/pkg/USRDIR
+	@cp $(PSL1GHT)/bin/ICON0.PNG $(BUILD)/pkg/ICON0.PNG
+	@fself.py $(OUTPUT).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN || make_self_npdrm $(OUTPUT).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN $(CONTENTID)
+	@sfo.py --title "$(TITLE)" --appid "$(APPID)" -f $(PSL1GHT)/bin/sfo.xml $(BUILD)/pkg/PARAM.SFO
+	@pkg.py --contentid $(CONTENTID) $(BUILD)/pkg/ $(OUTPUT).pkg
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
@@ -57,8 +62,6 @@ else
 
 DEPENDS	:=	$(OFILES:.o=.d)
 
-$(OUTPUT).pkg: $(OUTPUT).self
-$(OUTPUT).self: $(OUTPUT).elf
 $(OUTPUT).elf: $(OFILES)
 
 -include $(DEPENDS)
