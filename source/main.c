@@ -4,7 +4,6 @@
 
 #include "game.h"
 #include <sysutil/sysutil.h>
-#include <sysmodule/sysmodule.h>
 
 ModoJogo g_modoJogo = MODO_VAB;
 Foguete g_foguete;
@@ -15,7 +14,6 @@ void InicializarVAB(void);
 void AtualizarVAB(void);
 void DesenharPeca(float cx, float cy, TipoPeca tipo, float s);
 
-// Callback obrigatório do sistema PS3 (evita travamento e tela preta)
 static void sysutil_callback(u64 status, u64 param, void *usrdata) {
     (void)param; (void)usrdata;
     if (status == SYSUTIL_EXIT_GAME) {
@@ -138,12 +136,9 @@ static void AtualizarVoo(void) {
 int main(int argc, char **argv) {
     (void)argc; (void)argv;
 
-    sysModuleLoad(SYSMODULE_IO);
-    sysModuleLoad(SYSMODULE_GCM_SYS);
-
     tiny3d_Init(1024 * 1024);
     ioPadInit(7);
-    sysutilRegisterCallback(0, sysutil_callback, NULL);
+    sysUtilRegisterCallback(0, sysutil_callback, NULL);
 
     InicializarVAB();
 
@@ -157,6 +152,6 @@ int main(int argc, char **argv) {
     }
 
     ioPadEnd();
-    sysutilUnregisterCallback(0);
+    sysUtilUnregisterCallback(0);
     return 0;
 }
