@@ -61,9 +61,13 @@ static void ProcessarEntradaVAB(void) {
 
 void AtualizarVAB(void) {
     ProcessarEntradaVAB();
+
     tiny3d_Clear(0x080C22FF, TINY3D_CLEAR_ALL);
+    tiny3d_AlphaTest(1, 0x10, TINY3D_ALPHA_FUNC_GEQUAL);
+    tiny3d_BlendFunc(1, TINY3D_BLEND_FUNC_SRC_RGB_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_ALPHA_SRC_ALPHA,
+        TINY3D_BLEND_FUNC_DST_RGB_ONE_MINUS_SRC_ALPHA | TINY3D_BLEND_FUNC_DST_ALPHA_ZERO,
+        TINY3D_BLEND_RGB_FUNC_ADD | TINY3D_BLEND_ALPHA_FUNC_ADD);
     tiny3d_Project2D();
-    tiny3d_SetMatrixModelView(NULL);
 
     DesenharGrade();
     DesenharMenuLateral();
