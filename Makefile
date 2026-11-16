@@ -47,7 +47,8 @@ pkg: $(BUILD)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $(OUTPUT).elf
 	@mkdir -p $(BUILD)/pkg/USRDIR
 	@make_self $(OUTPUT).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN
-	@python3 $(PSL1GHT)/tools/generic/sfo.py --title "$(TITLE)" --appid "$(APPID)" -f $(PSL1GHT)/tools/generic/sfo.xml $(BUILD)/pkg/PARAM.SFO
+	@if [ -f ICON0.PNG ]; then cp ICON0.PNG $(BUILD)/pkg/ICON0.PNG; fi
+	@python3 $(PS3DEV)/bin/sfo.py --title "$(TITLE)" --appid "$(APPID)" -f $(PS3DEV)/bin/sfo.xml $(BUILD)/pkg/PARAM.SFO
 	@python3 $(PS3DEV)/bin/pkg.py --contentid $(CONTENTID) $(BUILD)/pkg/ $(OUTPUT).pkg
 
 $(BUILD):
