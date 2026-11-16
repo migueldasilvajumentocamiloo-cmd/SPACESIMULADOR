@@ -1,5 +1,5 @@
 /**
- * main.c — Loop Principal do SpaceSim PS3 (Sem Tela Preta)
+ * main.c — Loop Principal Oficial PSL1GHT + Tiny3D
  */
 
 #include "game.h"
@@ -107,8 +107,11 @@ static void AtualizarVoo(void) {
     }
 
     tiny3d_Clear(0x0A1535FF, TINY3D_CLEAR_ALL);
+    tiny3d_AlphaTest(1, 0x10, TINY3D_ALPHA_FUNC_GEQUAL);
+    tiny3d_BlendFunc(1, TINY3D_BLEND_FUNC_SRC_RGB_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_ALPHA_SRC_ALPHA,
+        TINY3D_BLEND_FUNC_DST_RGB_ONE_MINUS_SRC_ALPHA | TINY3D_BLEND_FUNC_DST_ALPHA_ZERO,
+        TINY3D_BLEND_RGB_FUNC_ADD | TINY3D_BLEND_ALPHA_FUNC_ADD);
     tiny3d_Project2D();
-    tiny3d_SetMatrixModelView(NULL);
 
     DrawRectVoo(0, 440, 848, 72, 0x228833FF);
     DrawRectVoo(350, 432, 148, 8, 0x777777FF);
