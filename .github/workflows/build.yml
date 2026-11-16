@@ -14,37 +14,33 @@ jobs:
     env:
       PS3DEV: /usr/local/ps3dev
       PSL1GHT: /usr/local/ps3dev/psl1ght
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout do Código
         uses: actions/checkout@v4
 
-      - name: Instalar Dependências do Sistema
+      - name: Instalar Dependências
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget curl tar gzip xz-utils make git python3 libelf-dev libssl-dev zlib1g-dev
+          sudo apt-get install -y make git python3 libelf-dev libssl-dev zlib1g-dev
 
-      - name: Baixar Toolchain PS3DEV Oficial
+      - name: Baixar SDK PS3DEV Oficial
         run: |
           sudo mkdir -p /usr/local/ps3dev
-          URL=$(curl -s https://github.com | grep "browser_download_url" | grep -i "linux" | head -n 1 | cut -d '"' -f 4)
-          echo "Baixando SDK de: $URL"
-          wget -q "$URL" -O /tmp/ps3dev_sdk
-          sudo tar -xf /tmp/ps3dev_sdk -C /usr/local/ps3dev --strip-components=1 || sudo tar -xf /tmp/ps3dev_sdk -C /usr/local
+          gh release download -R ps3dev/ps3dev -p "*linux*" -D /tmp
+          sudo tar -xf /tmp/*linux* -C /usr/local/ps3dev --strip-components=1
           echo "/usr/local/ps3dev/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/ppu/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/spu/bin" >> $GITHUB_PATH
 
       - name: Instalar Tiny3D
         run: |
-          export PATH="/usr/local/ps3dev/bin:/usr/local/ps3dev/ppu/bin:/usr/local/ps3dev/spu/bin:$PATH"
           git clone https://github.com /tmp/tiny3d
           make -C /tmp/tiny3d/library install
 
       - name: Compilar Projeto
-        run: |
-          export PATH="/usr/local/ps3dev/bin:/usr/local/ps3dev/ppu/bin:/usr/local/ps3dev/spu/bin:$PATH"
-          make -j$(nproc)
+        run: make -j$(nproc)
 
       - name: Preparar Artefatos
         run: |
