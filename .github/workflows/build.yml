@@ -13,6 +13,7 @@ jobs:
 
     env:
       PS3DEV: /usr/local/ps3dev
+      PSL1GHT: /usr/local/ps3dev/psl1ght
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -24,17 +25,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make git python3 libelf-dev libssl-dev zlib1g-dev
 
-      - name: Baixar SDK PS3DEV Pronto
+      - name: Baixar Compilador PS3DEV
         run: |
           sudo mkdir -p /usr/local/ps3dev
+          sudo chown -R $USER:$USER /usr/local/ps3dev
           gh release download -R bucanero/ps3toolchain -p "*ubuntu*" -D /tmp
-          sudo tar -xzf /tmp/*ubuntu* -C /usr/local/ps3dev --strip-components=1
+          tar -xzf /tmp/*ubuntu* -C /usr/local/ps3dev --strip-components=1
           echo "/usr/local/ps3dev/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/ppu/bin" >> $GITHUB_PATH
           echo "/usr/local/ps3dev/spu/bin" >> $GITHUB_PATH
-          PSL1GHT_DIR=$(dirname $(find /usr/local/ps3dev -name "Makefile.base" | head -n 1))
-          echo "PSL1GHT encontrado em: $PSL1GHT_DIR"
-          echo "PSL1GHT=$PSL1GHT_DIR" >> $GITHUB_ENV
+
+      - name: Instalar PSL1GHT e Tiny3D
+        run: |
+          export PATH="$PATH:/usr/local/ps3dev/bin:/usr/local/ps3dev/ppu/bin:/usr/local/ps3dev/spu/bin"
+          gh repo clone ps3dev/PSL1GHT /tmp/psl1ght
+          make -C /tmp/psl1ght install
+          gh repo clone wargio/tiny3D /tmp/tiny3d
+          make -C /tmp/tiny3d/library install
 
       - name: Compilar Jogo PS3
         run: make -j$(nproc)
