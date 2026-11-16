@@ -43,7 +43,7 @@ jobs:
           make -C /tmp/psl1ght
           make -C /tmp/psl1ght install
           gh repo clone wargio/tiny3D /tmp/tiny3d
-          make -C /tmp/tiny3d/library install
+          make -C /tmp/tiny3d/libraries install
 
       - name: Compilar Jogo PS3
         run: make -j$(nproc)
